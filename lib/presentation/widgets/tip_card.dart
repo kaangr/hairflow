@@ -24,7 +24,7 @@ class TipCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          height: 200, // Fixed height to prevent overflow
+          height: tip.category == TipCategory.product ? 240 : 200, // Extra height for product images
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,8 +156,8 @@ class TipCard extends StatelessWidget {
     if (imagePath != null) {
       return Center(
         child: Container(
-          width: 48,
-          height: 48,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: Colors.grey[100],
@@ -189,15 +189,15 @@ class TipCard extends StatelessWidget {
   Widget _buildDefaultTipIcon() {
     return Center(
       child: Container(
-        width: 48,
-        height: 48,
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           color: Colors.grey[200],
         ),
         child: Icon(
           Icons.medical_services_outlined,
-          size: 24,
+          size: 20,
           color: Colors.grey[600],
         ),
       ),
