@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine_task.dart';
+import '../../domain/entities/product.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/motivational_messages.dart';
 import 'animated_loading.dart';
@@ -28,20 +29,29 @@ class TaskCard extends StatelessWidget {
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: Transform.scale(
-            scale: 1.2,
-            child: Checkbox(
-              value: task.isCompleted,
-              onChanged: (value) {
-                onCompleted(value ?? false);
-                if (value == true) {
-                  _showCompletionFeedback(context);
-                }
-              },
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Product Image
+              _buildProductImage(),
+              const SizedBox(width: 8),
+              // Checkbox
+              Transform.scale(
+                scale: 1.2,
+                child: Checkbox(
+                  value: task.isCompleted,
+                  onChanged: (value) {
+                    onCompleted(value ?? false);
+                    if (value == true) {
+                      _showCompletionFeedback(context);
+                    }
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
           title: Text(
             task.title,
@@ -165,6 +175,49 @@ class TaskCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildProductImage() {
+    final imagePath = Product.getProductImageForTask(task.title);
+    
+    if (imagePath != null) {
+      return Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey[100],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            imagePath,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildDefaultIcon();
+            },
+          ),
+        ),
+      );
+    }
+    
+    return _buildDefaultIcon();
+  }
+  
+  Widget _buildDefaultIcon() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey[200],
+      ),
+      child: Icon(
+        Icons.medical_services_outlined,
+        size: 20,
+        color: Colors.grey[600],
       ),
     );
   }

@@ -54,4 +54,30 @@ class Product extends Equatable {
     ProductType.dermaroller: 'Dermaroller',
     ProductType.generalCare: 'Genel Saç Bakımı',
   };
+
+  static const Map<ProductType, String> productImagePaths = {
+    ProductType.minoxidil: 'assets/images/products/minoxidil.png',
+    ProductType.finasteride: 'assets/images/products/finasteride.png',
+    ProductType.biotin: 'assets/images/products/biotin.png',
+    ProductType.sawPalmetto: 'assets/images/products/saw_palmetto.png',
+    ProductType.caffeineShampoo: 'assets/images/products/caffeine_shampoo.png',
+    ProductType.ketoconazoleShampoo: 'assets/images/products/ketoconazole.png',
+    ProductType.dutasteride: 'assets/images/products/finasteride.png', // Fallback to similar
+    ProductType.dermaroller: 'assets/images/products/minoxidil.png', // Fallback
+    ProductType.generalCare: 'assets/images/products/biotin.png', // Fallback
+  };
+
+  /// Returns the image path for a product type
+  static String? getProductImagePath(ProductType type) {
+    return productImagePaths[type];
+  }
+
+  /// Returns the image path for a task title by extracting product type
+  static String? getProductImageForTask(String taskTitle) {
+    final productType = extractProductType(taskTitle);
+    if (productType != null) {
+      return getProductImagePath(productType);
+    }
+    return null;
+  }
 }

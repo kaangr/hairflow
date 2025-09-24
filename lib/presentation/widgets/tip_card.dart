@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/tip.dart';
+import '../../domain/entities/product.dart';
 
 class TipCard extends StatelessWidget {
   final dynamic tip; // Tip entity
@@ -92,6 +93,12 @@ class TipCard extends StatelessWidget {
               
               const SizedBox(height: 8),
               
+              // Product image for product tips
+              if (tip.category == TipCategory.product) ...[
+                _buildProductImageForTip(),
+                const SizedBox(height: 8),
+              ],
+              
               // Content - Flexible to fill remaining space
               Expanded(
                 child: Text(
@@ -141,6 +148,60 @@ class TipCard extends StatelessWidget {
       case TipCategory.nutrition:
         return Colors.purple;
     }
+  }
+
+  Widget _buildProductImageForTip() {
+    final imagePath = Product.getProductImageForTask(tip.title);
+    
+    if (imagePath != null) {
+      return Center(
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey[100],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              imagePath,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildDefaultTipIcon();
+              },
+            ),
+          ),
+        ),
+      );
+    }
+    
+    return _buildDefaultTipIcon();
+  }
+  
+  Widget _buildDefaultTipIcon() {
+    return Center(
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.grey[200],
+        ),
+        child: Icon(
+          Icons.medical_services_outlined,
+          size: 24,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
   }
 
   String _getCategoryName(TipCategory category) {
