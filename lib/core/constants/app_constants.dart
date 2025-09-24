@@ -5,7 +5,7 @@ class AppConstants {
   
   // Database
   static const String databaseName = 'hairflow.db';
-  static const int databaseVersion = 1;
+  static const int databaseVersion = 4;
   
   // Tables
   static const String routinesTable = 'routines';

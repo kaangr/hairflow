@@ -13,15 +13,16 @@ class KnowledgeBaseScreen extends StatefulWidget {
 }
 
 class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
+  late TextEditingController _searchController;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _searchController = TextEditingController();
   }
 
   @override
@@ -121,26 +122,38 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen>
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 1,
-        childAspectRatio: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: tips.length,
-      itemBuilder: (context, index) {
-        final tip = tips[index];
-        return TipCard(
-          tip: tip,
-          onFavoriteToggle: (isFavorite) {
-            context.read<TipProvider>().toggleTipFavorite(
-              tip.id!,
-              isFavorite,
+    // Use responsive grid layout
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 1;
+        if (constraints.maxWidth > 1200) {
+          crossAxisCount = 3;
+        } else if (constraints.maxWidth > 800) {
+          crossAxisCount = 2;
+        }
+
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            childAspectRatio: 1.6, // Adjusted for better proportions
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: tips.length,
+          itemBuilder: (context, index) {
+            final tip = tips[index];
+            return TipCard(
+              tip: tip,
+              onFavoriteToggle: (isFavorite) {
+                context.read<TipProvider>().toggleTipFavorite(
+                  tip.id!,
+                  isFavorite,
+                );
+              },
+              onTap: () => _showTipDetails(context, tip),
             );
           },
-          onTap: () => _showTipDetails(context, tip),
         );
       },
     );

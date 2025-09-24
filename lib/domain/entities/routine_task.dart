@@ -9,6 +9,7 @@ class RoutineTask extends Equatable {
   final bool isCompleted;
   final DateTime? completedAt;
   final DateTime date; // Görevin hangi güne ait olduğu
+  final DateTime? scheduledTime; // Görevin planlandığı saat
   final DateTime createdAt;
 
   const RoutineTask({
@@ -20,6 +21,7 @@ class RoutineTask extends Equatable {
     this.isCompleted = false,
     this.completedAt,
     required this.date,
+    this.scheduledTime,
     required this.createdAt,
   });
 
@@ -32,6 +34,7 @@ class RoutineTask extends Equatable {
     bool? isCompleted,
     DateTime? completedAt,
     DateTime? date,
+    DateTime? scheduledTime,
     DateTime? createdAt,
   }) {
     return RoutineTask(
@@ -43,6 +46,7 @@ class RoutineTask extends Equatable {
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? this.completedAt,
       date: date ?? this.date,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -57,6 +61,7 @@ class RoutineTask extends Equatable {
         isCompleted,
         completedAt,
         date,
+        scheduledTime,
         createdAt,
       ];
 }

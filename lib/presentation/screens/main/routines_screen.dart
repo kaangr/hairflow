@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../../providers/routine_provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../widgets/task_card.dart';
+import '../../widgets/routine_calendar.dart';
 import '../routine/hair_assessment_screen.dart';
+import '../routine/manual_routine_screen.dart';
 
 class RoutinesScreen extends StatelessWidget {
   const RoutinesScreen({super.key});
@@ -296,10 +298,9 @@ class RoutinesScreen extends StatelessWidget {
   }
 
   void _navigateToCustomRoutine(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Manuel rutin oluşturma yakında eklenecek!'),
-        backgroundColor: Colors.orange,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const ManualRoutineScreen(),
       ),
     );
   }
@@ -436,25 +437,9 @@ class RoutinesScreen extends StatelessWidget {
   }
 
   Widget _buildCalendarView(BuildContext context, RoutineProvider provider) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.calendar_month,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Takvim görünümü yakında eklenecek',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
+    return const Padding(
+      padding: EdgeInsets.all(8.0),
+      child: RoutineCalendar(),
     );
   }
 }

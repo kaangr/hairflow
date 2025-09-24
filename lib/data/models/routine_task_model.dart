@@ -10,6 +10,7 @@ class RoutineTaskModel extends RoutineTask {
     super.isCompleted,
     super.completedAt,
     required super.date,
+    super.scheduledTime,
     required super.createdAt,
   });
 
@@ -25,6 +26,9 @@ class RoutineTaskModel extends RoutineTask {
           ? DateTime.parse(json['completed_at'] as String) 
           : null,
       date: DateTime.parse(json['date'] as String),
+      scheduledTime: json['scheduled_time'] != null 
+          ? DateTime.parse(json['scheduled_time'] as String) 
+          : null,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -39,6 +43,7 @@ class RoutineTaskModel extends RoutineTask {
       'is_completed': isCompleted ? 1 : 0,
       'completed_at': completedAt?.toIso8601String(),
       'date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+      'scheduled_time': scheduledTime?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -53,6 +58,7 @@ class RoutineTaskModel extends RoutineTask {
       isCompleted: task.isCompleted,
       completedAt: task.completedAt,
       date: task.date,
+      scheduledTime: task.scheduledTime,
       createdAt: task.createdAt,
     );
   }
@@ -67,6 +73,7 @@ class RoutineTaskModel extends RoutineTask {
     bool? isCompleted,
     DateTime? completedAt,
     DateTime? date,
+    DateTime? scheduledTime,
     DateTime? createdAt,
   }) {
     return RoutineTaskModel(
@@ -78,6 +85,7 @@ class RoutineTaskModel extends RoutineTask {
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? this.completedAt,
       date: date ?? this.date,
+      scheduledTime: scheduledTime ?? this.scheduledTime,
       createdAt: createdAt ?? this.createdAt,
     );
   }

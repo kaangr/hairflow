@@ -102,30 +102,34 @@ class RoutineRepositoryImpl implements RoutineRepository {
 
   @override
   Future<void> createDailyTasks(DateTime date) async {
-    // Check if tasks for this date already exist
-    final existingTasks = await getTasksByDate(date);
-    if (existingTasks.isNotEmpty) {
-      return; // Tasks already exist for this date
-    }
-
-    // Get the default routine (assume it's the first one)
+    // Get all routines
     final routines = await getRoutines();
     if (routines.isEmpty) {
       return; // No routines available
     }
 
-    final defaultRoutine = routines.first;
-    
-    // Create tasks for the date
-    for (int i = 0; i < AppConstants.defaultRoutineTasks.length; i++) {
-      final task = RoutineTask(
-        routineId: defaultRoutine.id!,
-        title: AppConstants.defaultRoutineTasks[i],
-        order: i,
-        date: date,
-        createdAt: DateTime.now(),
-      );
-      await createTask(task);
+    // For each routine, check if tasks exist for this date, if not create them
+    for (final routine in routines) {
+      final existingTasksForRoutine = await getTasksByRoutineId(routine.id!);
+      final tasksForDate = existingTasksForRoutine.where((task) => 
+        task.date.year == date.year && 
+        task.date.month == date.month && 
+        task.date.day == date.day
+      ).toList();
+
+      if (tasksForDate.isEmpty) {
+        // Use default tasks if no specific tasks exist
+        for (int i = 0; i < AppConstants.defaultRoutineTasks.length; i++) {
+          final task = RoutineTask(
+            routineId: routine.id!,
+            title: AppConstants.defaultRoutineTasks[i],
+            order: i,
+            date: date,
+            createdAt: DateTime.now(),
+          );
+          await createTask(task);
+        }
+      }
     }
   }
 

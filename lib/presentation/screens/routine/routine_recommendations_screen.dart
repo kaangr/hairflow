@@ -475,7 +475,10 @@ class _RoutineRecommendationsScreenState
 
   void _addSingleRoutine(Routine routine, int index) async {
     final routineProvider = context.read<RoutineProvider>();
-    await routineProvider.addRoutine(routine);
+    final routineData = _recommendedData[index];
+    final tasks = routineData['tasks'] as List<String>;
+    
+    await routineProvider.addRoutine(routine, tasks: tasks);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -509,9 +512,13 @@ class _RoutineRecommendationsScreenState
       ),
     );
 
-    // Add all routines
-    for (final routine in _recommendedRoutines) {
-      await routineProvider.addRoutine(routine);
+    // Add all routines with their tasks
+    for (int i = 0; i < _recommendedRoutines.length; i++) {
+      final routine = _recommendedRoutines[i];
+      final routineData = _recommendedData[i];
+      final tasks = routineData['tasks'] as List<String>;
+      
+      await routineProvider.addRoutine(routine, tasks: tasks);
       await Future.delayed(const Duration(milliseconds: 300));
     }
 

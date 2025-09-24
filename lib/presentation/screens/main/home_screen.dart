@@ -8,6 +8,7 @@ import '../../widgets/progress_card.dart';
 import '../../widgets/task_card.dart';
 import '../../widgets/motivational_tip_card.dart';
 import '../../widgets/animated_loading.dart';
+import '../../widgets/time_planner_calendar.dart';
 import '../../../core/constants/motivational_messages.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -41,8 +42,13 @@ class HomeScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
+          // Force complete reload for web compatibility
           await context.read<RoutineProvider>().loadData();
           await context.read<TipProvider>().loadTips();
+          
+          // Additional delay and reload for web platform
+          await Future.delayed(const Duration(milliseconds: 200));
+          await context.read<RoutineProvider>().loadData();
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -93,6 +99,19 @@ class HomeScreen extends StatelessWidget {
                     onRefresh: () => tipProvider.refreshDailyTip(),
                   );
                 },
+              ),
+
+              const SizedBox(height: 24),
+
+              // Time Planner Calendar
+              Text(
+                'Saatlik Program',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 12),
+              
+              Card(
+                child: const TimePlannerCalendar(),
               ),
 
               const SizedBox(height: 24),
