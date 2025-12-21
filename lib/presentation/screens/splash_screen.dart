@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import '../providers/user_preferences_provider.dart';
+import '../providers/auth_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import 'onboarding/onboarding_screen.dart';
 import 'main/main_navigation_screen.dart';
+import 'landing/landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
     _initializeAnimations();
-    _navigateAfterDelay();
+    _checkAuthAndNavigate();
   }
 
   void _initializeAnimations() {
@@ -50,26 +53,61 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _animationController.forward();
   }
 
-  void _navigateAfterDelay() {
-    Future.delayed(const Duration(seconds: 3), () {
+  void _checkAuthAndNavigate() {
+    Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        final userPrefsProvider = context.read<UserPreferencesProvider>();
-        
-        if (userPrefsProvider.isFirstLaunch) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const OnboardingScreen(),
-            ),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const MainNavigationScreen(),
-            ),
-          );
-        }
+        _navigateToNextScreen();
       }
     });
+  }
+
+  void _navigateToNextScreen() {
+    final authProvider = context.read<AuthProvider>();
+    final userPrefsProvider = context.read<UserPreferencesProvider>();
+
+    // Web platformunda ve kullanıcı giriş yapmamışsa landing page'e git
+    if (kIsWeb && !authProvider.isAuthenticated) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => _AuthWrapper(),
+        ),
+      );
+      return;
+    }
+
+    // Kullanıcı giriş yapmış
+    if (authProvider.isAuthenticated) {
+      // İlk açılış mı kontrol et
+      if (userPrefsProvider.isFirstLaunch) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const OnboardingScreen(),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const MainNavigationScreen(),
+          ),
+        );
+      }
+      return;
+    }
+
+    // Mobilde ve giriş yapmamışsa onboarding'e git
+    if (userPrefsProvider.isFirstLaunch) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const OnboardingScreen(),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const MainNavigationScreen(),
+        ),
+      );
+    }
   }
 
   @override
@@ -91,14 +129,28 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF4CAF50),
+                      Color(0xFF2E7D32),
+                    ],
+                  ),
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: const Icon(
-                  Icons.health_and_safety,
+                  Icons.grass,
                   size: 60,
-                  color: AppColors.primary,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -140,6 +192,60 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Wrapper widget that handles authentication flow
+class _AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Show error snackbar if there's an error
+        if (authProvider.error != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(authProvider.error!),
+                backgroundColor: AppColors.error,
+                action: SnackBarAction(
+                  label: 'Kapat',
+                  textColor: Colors.white,
+                  onPressed: () => authProvider.clearError(),
+                ),
+              ),
+            );
+          });
+        }
+
+        // If authenticated, go to app
+        if (authProvider.isAuthenticated) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final userPrefsProvider = context.read<UserPreferencesProvider>();
+            if (userPrefsProvider.isFirstLaunch) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const OnboardingScreen(),
+                ),
+              );
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const MainNavigationScreen(),
+                ),
+              );
+            }
+          });
+        }
+
+        return LandingPage(
+          isLoading: authProvider.isLoading,
+          onGoogleSignIn: () async {
+            await authProvider.signInWithGoogle();
+          },
+        );
+      },
     );
   }
 }

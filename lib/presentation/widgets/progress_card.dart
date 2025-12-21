@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/constants/app_colors.dart';
 
 class ProgressCard extends StatelessWidget {
   final int completedTasks;

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/predefined_routines.dart';
-import '../../../core/constants/app_strings.dart';
-import '../../widgets/animated_loading.dart';
+import '../../providers/user_preferences_provider.dart';
 import 'routine_recommendations_screen.dart';
 
 class HairAssessmentScreen extends StatefulWidget {
@@ -70,25 +69,74 @@ class _HairAssessmentScreenState extends State<HairAssessmentScreen>
       // Animate in
       await _animationController.forward();
     } else {
-      // Assessment complete
-      _navigateToRecommendations();
+      // Assessment complete - save results
+      await _saveAssessmentAndNavigate();
     }
   }
 
-  void _navigateToRecommendations() {
+  Future<void> _saveAssessmentAndNavigate() async {
     final hairType = _answers[0] as HairType;
     final hairLossStage = _answers[1] as HairLossStage;
     final userGoal = _answers[2] as UserGoal;
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => RoutineRecommendationsScreen(
-          hairType: hairType,
-          hairLossStage: hairLossStage,
-          userGoal: userGoal,
-        ),
-      ),
+    // Assessment sonuçlarını kaydet
+    final userPrefsProvider = context.read<UserPreferencesProvider>();
+    await userPrefsProvider.saveAssessmentResults(
+      hairType: _hairTypeToString(hairType),
+      hairLossStage: _hairLossStageToString(hairLossStage),
+      userGoal: _userGoalToString(userGoal),
     );
+
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => RoutineRecommendationsScreen(
+            hairType: hairType,
+            hairLossStage: hairLossStage,
+            userGoal: userGoal,
+          ),
+        ),
+      );
+    }
+  }
+
+  String _hairTypeToString(HairType type) {
+    switch (type) {
+      case HairType.dry:
+        return 'dry';
+      case HairType.oily:
+        return 'oily';
+      case HairType.sensitive:
+        return 'sensitive';
+      case HairType.normal:
+        return 'normal';
+    }
+  }
+
+  String _hairLossStageToString(HairLossStage stage) {
+    switch (stage) {
+      case HairLossStage.prevention:
+        return 'prevention';
+      case HairLossStage.early:
+        return 'early';
+      case HairLossStage.moderate:
+        return 'moderate';
+      case HairLossStage.advanced:
+        return 'advanced';
+    }
+  }
+
+  String _userGoalToString(UserGoal goal) {
+    switch (goal) {
+      case UserGoal.preventLoss:
+        return 'preventLoss';
+      case UserGoal.regrowth:
+        return 'regrowth';
+      case UserGoal.strengthening:
+        return 'strengthening';
+      case UserGoal.maintenance:
+        return 'maintenance';
+    }
   }
 
   void _goBack() async {

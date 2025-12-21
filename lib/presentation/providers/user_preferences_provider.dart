@@ -17,6 +17,7 @@ class UserPreferencesProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get isFirstLaunch => _preferences.isFirstLaunch;
+  bool get hasCompletedAssessment => _preferences.hasCompletedAssessment;
 
   Future<void> loadPreferences() async {
     _setLoading(true);
@@ -80,8 +81,52 @@ class UserPreferencesProvider with ChangeNotifier {
     }
   }
 
+  /// Assessment sonuçlarını kaydet
+  Future<void> saveAssessmentResults({
+    required String hairType,
+    required String hairLossStage,
+    required String userGoal,
+  }) async {
+    try {
+      await _repository.saveAssessmentResults(
+        hairType: hairType,
+        hairLossStage: hairLossStage,
+        userGoal: userGoal,
+      );
+      _preferences = _preferences.copyWith(
+        hasCompletedAssessment: true,
+        hairType: hairType,
+        hairLossStage: hairLossStage,
+        userGoal: userGoal,
+      );
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
+  }
+
+  /// Değerlendirmeyi sıfırla
+  Future<void> resetAssessment() async {
+    try {
+      await _repository.resetAssessment();
+      _preferences = _preferences.copyWith(
+        hasCompletedAssessment: false,
+        hairType: '',
+        hairLossStage: '',
+        userGoal: '',
+      );
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 }

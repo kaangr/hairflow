@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/tip_provider.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../domain/entities/tip.dart';
 import '../../widgets/tip_card.dart';
+import '../products/products_screen.dart';
 
 class KnowledgeBaseScreen extends StatefulWidget {
   const KnowledgeBaseScreen({super.key});
@@ -37,6 +39,21 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.knowledgeBase),
+        actions: [
+          // Ürün Rehberi butonu
+          IconButton(
+            icon: const Icon(Icons.inventory_2),
+            tooltip: 'Ürün Rehberi',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProductsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(112),
           child: Column(
@@ -108,7 +125,7 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen>
             Icon(
               Icons.search_off,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -116,6 +133,24 @@ class _KnowledgeBaseScreenState extends State<KnowledgeBaseScreen>
                   ? 'Arama sonucu bulunamadı'
                   : AppStrings.dataNotFound,
               style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 24),
+            // Ürün rehberine yönlendirme
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProductsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.inventory_2),
+              label: const Text('Ürün Rehberine Git'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),

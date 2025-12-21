@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/routine_task.dart';
 import '../../domain/entities/product.dart';
-import '../../core/constants/app_strings.dart';
 import '../../core/constants/motivational_messages.dart';
 import 'animated_loading.dart';
 

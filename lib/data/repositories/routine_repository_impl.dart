@@ -33,7 +33,7 @@ class RoutineRepositoryImpl implements RoutineRepository {
   @override
   Future<List<Routine>> getRoutines() async {
     final routineModels = await _localDataSource.getRoutines();
-    return routineModels.cast<Routine>();
+    return routineModels; // RoutineModel extends Routine, so this works directly
   }
 
   @override
@@ -63,19 +63,19 @@ class RoutineRepositoryImpl implements RoutineRepository {
   @override
   Future<List<RoutineTask>> getTasks() async {
     final taskModels = await _localDataSource.getTasks();
-    return taskModels.cast<RoutineTask>();
+    return taskModels; // RoutineTaskModel extends RoutineTask
   }
 
   @override
   Future<List<RoutineTask>> getTasksByDate(DateTime date) async {
     final taskModels = await _localDataSource.getTasksByDate(date);
-    return taskModels.cast<RoutineTask>();
+    return taskModels; // RoutineTaskModel extends RoutineTask
   }
 
   @override
   Future<List<RoutineTask>> getTasksByRoutineId(int routineId) async {
     final taskModels = await _localDataSource.getTasksByRoutineId(routineId);
-    return taskModels.cast<RoutineTask>();
+    return taskModels; // RoutineTaskModel extends RoutineTask
   }
 
   @override

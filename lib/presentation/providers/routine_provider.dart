@@ -3,20 +3,36 @@ import '../../domain/entities/routine.dart';
 import '../../domain/entities/routine_task.dart';
 import '../../domain/entities/product.dart';
 import '../../data/repositories/routine_repository_impl.dart';
+import '../../data/repositories/firebase_repository.dart';
+import '../../core/services/firestore_service.dart';
 import '../../core/utils/time_scheduler.dart';
 
 class RoutineProvider with ChangeNotifier {
   final RoutineRepository _repository;
+  final FirebaseRepository _firebaseRepository = FirebaseRepository();
+  final FirestoreService _firestoreService = FirestoreService();
   
   List<Routine> _routines = [];
   List<RoutineTask> _todayTasks = [];
   List<RoutineTask> _allTasks = [];
   bool _isLoading = false;
   String? _error;
+  
+  // User stats
+  int _totalXP = 0;
+  int _currentStreak = 0;
+  int _longestStreak = 0;
 
   RoutineProvider(this._repository) {
     loadData();
+    _loadUserStats();
   }
+  
+  int get totalXP => _totalXP;
+  int get currentStreak => _currentStreak;
+  int get longestStreak => _longestStreak;
+  int get currentLevel => (_totalXP / 100).floor() + 1;
+  int get xpForNextLevel => 100 - (_totalXP % 100);
 
   List<Routine> get routines => _routines;
   List<RoutineTask> get todayTasks => _todayTasks;
@@ -33,6 +49,22 @@ class RoutineProvider with ChangeNotifier {
   double get progressPercentage {
     if (totalTasksToday == 0) return 0.0;
     return completedTasksToday / totalTasksToday;
+  }
+  
+  Future<void> _loadUserStats() async {
+    if (!_firestoreService.isLoggedIn) return;
+    
+    try {
+      final stats = await _firebaseRepository.getUserStats();
+      if (stats != null) {
+        _totalXP = stats['totalXP'] as int? ?? 0;
+        _currentStreak = stats['currentStreak'] as int? ?? 0;
+        _longestStreak = stats['longestStreak'] as int? ?? 0;
+        notifyListeners();
+      }
+    } catch (e) {
+      // Silently fail for stats
+    }
   }
 
   Future<void> loadData() async {
@@ -82,6 +114,21 @@ class RoutineProvider with ChangeNotifier {
           isCompleted: isCompleted,
           completedAt: isCompleted ? DateTime.now() : null,
         );
+      }
+      
+      // Update Firebase stats if logged in
+      if (isCompleted && _firestoreService.isLoggedIn) {
+        await _firebaseRepository.addXP(10);
+        await _firebaseRepository.updateStreak();
+        _totalXP += 10;
+        
+        // Check if all tasks are completed for bonus XP
+        if (completedTasksToday == totalTasksToday && totalTasksToday > 0) {
+          await _firebaseRepository.addXP(50); // Bonus for completing all
+          _totalXP += 50;
+        }
+        
+        await _loadUserStats();
       }
 
       _error = null;
@@ -135,6 +182,19 @@ class RoutineProvider with ChangeNotifier {
       // Eğer görevler verilmişse, bunları bugün için oluştur
       if (tasks != null && tasks.isNotEmpty) {
         await _createTasksForRoutine(id, tasks, DateTime.now());
+      }
+      
+      // Firebase'e de kaydet (eğer giriş yapılmışsa)
+      if (_firestoreService.isLoggedIn) {
+        try {
+          await _firebaseRepository.createRoutine(routine);
+          // XP for creating a routine
+          await _firebaseRepository.addXP(25);
+          _totalXP += 25;
+        } catch (e) {
+          // Firebase sync failed, but local save succeeded
+          debugPrint('Firebase sync failed: $e');
+        }
       }
       
       // Bugün için görevleri yeniden yükle

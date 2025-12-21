@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "95138906850",
+    "project_id": "hairflow-b5b7d",
+    "storage_bucket": "hairflow-b5b7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:95138906850:android:468ffa45e03bf7393294bb",
+        "android_client_info": {
+          "package_name": "com.hairflow.app.hairflow"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "95138906850-7q535p55vp3sh1nht26l6srjrl640q1k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKjjTtgsfu9u5hv6twNUBf6Mh0qFYlqGI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "95138906850-7q535p55vp3sh1nht26l6srjrl640q1k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "95138906850-4dlrlaiib4vr180ahoq28qkk7kg17rbd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hairflow.app.hairflow"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

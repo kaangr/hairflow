@@ -478,23 +478,72 @@ class _RoutineRecommendationsScreenState
     final routineData = _recommendedData[index];
     final tasks = routineData['tasks'] as List<String>;
     
-    await routineProvider.addRoutine(routine, tasks: tasks);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const AnimatedSuccessIcon(size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text('${routine.name} rutininiz eklendi! 🎉'),
+    // Loading göster
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 16),
+                Text('Rutin ekleniyor...'),
+              ],
             ),
-          ],
+          ),
         ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
       ),
     );
+    
+    try {
+      await routineProvider.addRoutine(routine, tasks: tasks);
+      
+      if (mounted) {
+        Navigator.of(context).pop(); // Loading dialog'u kapat
+        
+        // Hata var mı kontrol et
+        if (routineProvider.error != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Hata: ${routineProvider.error}'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const AnimatedSuccessIcon(size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text('${routine.name} rutininiz eklendi! 🎉'),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Loading dialog'u kapat
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata oluştu: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _addAllRoutines() async {
@@ -512,33 +561,61 @@ class _RoutineRecommendationsScreenState
       ),
     );
 
-    // Add all routines with their tasks
-    for (int i = 0; i < _recommendedRoutines.length; i++) {
-      final routine = _recommendedRoutines[i];
-      final routineData = _recommendedData[i];
-      final tasks = routineData['tasks'] as List<String>;
-      
-      await routineProvider.addRoutine(routine, tasks: tasks);
-      await Future.delayed(const Duration(milliseconds: 300));
+    bool hasError = false;
+    String? errorMessage;
+
+    try {
+      // Add all routines with their tasks
+      for (int i = 0; i < _recommendedRoutines.length; i++) {
+        final routine = _recommendedRoutines[i];
+        final routineData = _recommendedData[i];
+        final tasks = routineData['tasks'] as List<String>;
+        
+        await routineProvider.addRoutine(routine, tasks: tasks);
+        
+        if (routineProvider.error != null) {
+          // Eğer ürün çakışması varsa, devam et (zaten ekli)
+          if (!routineProvider.error!.contains('zaten')) {
+            hasError = true;
+            errorMessage = routineProvider.error;
+            break;
+          }
+        }
+        
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+    } catch (e) {
+      hasError = true;
+      errorMessage = e.toString();
     }
 
     // Close loading
     if (mounted) {
       Navigator.of(context).pop();
       
-      // Show success and navigate
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 Tüm rutinleriniz başarıyla eklendi!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      if (hasError && errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $errorMessage'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        // Show success and navigate
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Tüm rutinleriniz başarıyla eklendi!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
 
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
-        (route) => false,
-      );
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const MainNavigationScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 }
