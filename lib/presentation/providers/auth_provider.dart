@@ -48,12 +48,48 @@ class AuthProvider with ChangeNotifier {
     _initialized = true;
     
     // Listen to auth state changes
-    _authService.authStateChanges.listen((User? user) {
+    _authService.authStateChanges.listen((User? user) async {
       _user = user;
       if (user != null) {
         _state = AuthState.authenticated;
+        
+        // DEBUG: Kullanıcı bilgilerini print et
+        print('═══════════════════════════════════════════');
+        print('🔐 KULLANICI GİRİŞ YAPTI');
+        print('═══════════════════════════════════════════');
+        print('User ID (UID):  ${user.uid}');
+        print('Email:          ${user.email}');
+        print('Display Name:   ${user.displayName}');
+        
+        // Rol bilgisini al
+        try {
+          final role = await _authService.getUserRole();
+          final roleId = await _authService.getUserRoleId();
+          final isAdmin = await _authService.isAdmin();
+          final isExpert = await _authService.isExpert();
+          
+          print('Role:           $role');
+          print('Role ID:        $roleId');
+          print('Is Admin:       $isAdmin');
+          print('Is Expert:      $isExpert');
+        } catch (e) {
+          print('⚠️  Rol bilgisi alınamadı: $e');
+          print('    (İlk giriş ise normal, Firestore\'da oluşacak)');
+        }
+        
+        print('═══════════════════════════════════════════');
+        print('');
+        print('📝 Firebase Console\'da Admin yapmak için:');
+        print('1. https://console.firebase.google.com');
+        print('2. Firestore Database → Data');
+        print('3. users → ${user.uid}');
+        print('4. Edit document (kalem ikonu)');
+        print('5. Ekle: role = "admin", roleId = 1');
+        print('6. Update butonuna bas');
+        print('═══════════════════════════════════════════');
       } else {
         _state = AuthState.unauthenticated;
+        print('🔓 Kullanıcı çıkış yaptı');
       }
       notifyListeners();
     });

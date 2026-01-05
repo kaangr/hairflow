@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/routine_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/duolingo_style/streak_widget.dart';
 import '../../widgets/duolingo_style/xp_progress_bar.dart';
 import '../../widgets/duolingo_style/achievement_badge.dart';
@@ -116,39 +117,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             const SizedBox(height: 20),
             
-            // Avatar
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+            // Avatar (Firebase'den veya emoji)
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                return Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                    image: authProvider.photoURL != null
+                        ? DecorationImage(
+                            image: NetworkImage(authProvider.photoURL!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  '🧔',
-                  style: const TextStyle(fontSize: 48),
-                ),
-              ),
+                  child: authProvider.photoURL == null
+                      ? const Center(
+                          child: Text(
+                            '🧔',
+                            style: TextStyle(fontSize: 48),
+                          ),
+                        )
+                      : null,
+                );
+              },
             ),
 
             const SizedBox(height: 16),
 
-            // Kullanıcı adı
-            const Text(
-              'HairFlow Kullanıcısı',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+            // Kullanıcı adı (Firebase'den)
+            Consumer<AuthProvider>(
+              builder: (context, authProvider, _) {
+                return Text(
+                  authProvider.displayName ?? authProvider.email?.split('@').first ?? 'HairFlow Kullanıcısı',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 8),

@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========== HELPER FUNCTIONS ==========
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function getUserRole() {
+      return getUserData().role;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+    
+    function isExpert() {
+      return isSignedIn() && (getUserRole() == 'expert' || getUserRole() == 'admin');
+    }
+    
+    // ========== USERS COLLECTION ==========
+    match /users/{userId} {
+      // READ: Kullanıcı kendi profilini veya Admin herkesin profilini okuyabilir
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      
+      // CREATE: Kayıt sırasında otomatik oluşur
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      
+      // UPDATE: Kullanıcı kendi profilini güncelleyebilir (rol değiştiremez!)
+      allow update: if isSignedIn() && request.auth.uid == userId 
+                    && (!request.resource.data.keys().hasAny(['role', 'roleId']) 
+                        || request.resource.data.role == resource.data.role);
+      
+      // DELETE: Sadece Admin silebilir
+      allow delete: if isAdmin();
+      
+      // ========== USER ROUTINES ==========
+      match /routines/{routineId} {
+        // User kendi rutinlerini yönetir, Expert/Admin herkesinkini okuyabilir
+        allow read: if isSignedIn() && (request.auth.uid == userId || isExpert());
+        allow create, update, delete: if isSignedIn() && request.auth.uid == userId;
+      }
+      
+      // ========== USER TASKS ==========
+      match /tasks/{taskId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isExpert());
+        allow create, update, delete: if isSignedIn() && request.auth.uid == userId;
+      }
+      
+      // ========== USER STATS ==========
+      match /userStats/{docId} {
+        allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+        allow write: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+    
+    // ========== TIPS COLLECTION (Global) ==========
+    match /tips/{tipId} {
+      // READ: Herkes onaylı tip'leri, Expert kendi tip'lerini okuyabilir
+      allow read: if isSignedIn() && 
+                  (resource.data.isApproved == true 
+                   || resource.data.authorId == request.auth.uid 
+                   || isAdmin());
+      
+      // CREATE: Sadece Expert/Admin oluşturabilir
+      allow create: if isExpert() && 
+                    request.resource.data.authorId == request.auth.uid &&
+                    request.resource.data.isApproved == false;
+      
+      // UPDATE: Kendi tip'ini güncelleyebilir veya Admin onaylayabilir
+      allow update: if (isExpert() && resource.data.authorId == request.auth.uid) 
+                    || isAdmin();
+      
+      // DELETE: Kendi tip'ini veya Admin silebilir
+      allow delete: if (isExpert() && resource.data.authorId == request.auth.uid) 
+                    || isAdmin();
+    }
+    
+    // ========== PRODUCTS COLLECTION (Global) ==========
+    match /products/{productId} {
+      // READ: Herkes okuyabilir
+      allow read: if isSignedIn();
+      
+      // CREATE, UPDATE, DELETE: Sadece Expert/Admin
+      allow create, update, delete: if isExpert();
+    }
+    
+    // ========== ADMIN ONLY COLLECTIONS ==========
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
+
